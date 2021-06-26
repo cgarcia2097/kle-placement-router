@@ -14,6 +14,7 @@ What it is not is a **keyboard generator**. That requires programmatic generatio
 
 - [**Plugin Setup**](docs/SETUP.md)
 - [**Plugin Usage**](docs/USAGE.md)
+- [**Plugin Updates**](docs/UPDATES.md)
 
 ## References
 
