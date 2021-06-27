@@ -3,6 +3,8 @@
 These are the required for the plugin to work
 
 - An unfinished PCB with all components on the board
+  - All component references are in the format `"PREFIX_NUMBER"`, where `PREFIX` is the reference designator for the keyswitch and `NUMBER`
+  - The underscore is important for parsing purposes, make sure that there's only one.
 - A KLE layout file that matches the number of keys on your board
 - An output directory in which the modified PCB is made
 

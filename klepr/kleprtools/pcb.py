@@ -3,57 +3,48 @@ import math
 import random
 import pcbnew
 from klepr.kleprtools import key
-
-args = []
-keyUnits = []
+from klepr.kleprtools import config
 
 # KiCAD versions; update when necessary
-isKicadNightly = False
+config.isKiCADNightly = False
 KICAD_NIGHTLY_VERSION = 2021
 KICAD_STABLE_VERSION = 2017
 
 PROG_VERSION_NUMBER = 0.1
 UNIT_SPACING_MM = 19.05
 
-class Reference():
-    """ Information as pertains to each reference object """
-
-    def __init__(
-            self, 
-            obj_id=math.ceil(random.random()*sys.maxsize),
-            reference="REF_",
-            off_x=0,
-            off_y=0,
-            angle=0
-        ):
-        """ 
-        Parameters:
-        
-        reference   - The prefix of the reference to be tracked
-        off_x       - The additional X unit offset from the module center point
-        off_y       - The additional Y unit offset from the module center point
-        angle       - The additional angular rotation for each prefixed reference
-
-        """
-        self.id = obj_id
-        self.reference = reference
-        self.off_x = off_x
-        self.off_y = off_y
-        self.angle = angle
-
-class ReferenceTable():
-    """ Contains a collection of Reference objects """
-
-    def __init__(self):
-        self.table = {}
-
-def checkKicadFileFormatVersion(pcb):
-    """ Checks for KiCAD file format version """
-
-    # Strip the first five characters out of the file version
-    version = str(pcb.GetFileFormatVersionAtLoad())
-    version_year = int(version[0:4])
-    return version_year
+# class Reference():
+#     """ Information as pertains to each reference object """
+# 
+#     def __init__(
+#             self, 
+#             obj_id=math.ceil(random.random()*sys.maxsize),
+#             reference="REF_",
+#             off_x=0,
+#             off_y=0,
+#             angle=0
+#         ):
+#         """ 
+#         Parameters:
+#         
+#         reference   - The prefix of the reference to be tracked
+#         off_x       - The additional X unit offset from the module center point
+#         off_y       - The additional Y unit offset from the module center point
+#         angle       - The additional angular rotation for each prefixed reference
+# 
+#         """
+#         self.id = obj_id
+#         self.reference = reference
+#         self.off_x = off_x
+#         self.off_y = off_y
+#         self.angle = angle
+# 
+# 
+# class ReferenceTable():
+#     """ Contains a collection of Reference objects """
+# 
+#     def __init__(self):
+#         self.table = {}
 
 def unitSpacing2MM(unit):
     """ Converts unit spacing into millimeter spacing. Used for placing KiCAD components """
@@ -62,6 +53,17 @@ def unitSpacing2MM(unit):
 def angle2WxAngle(angle):
     """ Convert degrees to KiCAD angles """
     return (angle)*-10.0
+
+class PCBPlacer(pcbnew.BOARD):
+    """ Main class for placing PCB components together """
+
+def checkKicadFileFormatVersion(pcb):
+    """ Checks for KiCAD file format version """
+
+    # Strip the first five characters out of the file version
+    version = str(pcb.GetFileFormatVersionAtLoad())
+    version_year = int(version[0:4])
+    return version_year
 
 def compareReferences(str1, str2):
     """ Checks contents of both strings when id() returns a different number. 
@@ -90,7 +92,7 @@ def GetNumOfPrefixedParts(prefix):
     pcb = pcbnew.GetBoard()
 
     ########## Add compatibility layer for differing versions of KiCAD
-    if isKicadNightly == True:
+    if config.isKiCADNightly == True:
         parts = pcb.GetFootprints()
     else:
         parts = pcb.GetModules()
@@ -114,7 +116,7 @@ def shovePartsIntoCorner(x,y):
     pcb = pcbnew.GetBoard()
     
     ########## Add compatibility layer for differing versions of KiCAD
-    if isKicadNightly == True:
+    if config.isKiCADNightly == True:
         parts = pcb.GetFootprints()
     else:
         parts = pcb.GetModules()
@@ -126,6 +128,9 @@ def placeComponents(layout, references, outputDir):
     """ Position components based of reference configuration and layout. 
     
         TODO: Not make this program run on 0(n^3) complexity. AKA simplify the loops
+
+        :param: The XY coordinate map
+        :
     """
     shovePartsIntoCorner(200,200)
     print("Placing components...")
@@ -134,11 +139,10 @@ def placeComponents(layout, references, outputDir):
     pcb = pcbnew.GetBoard()
 
     ########## Add compatibility layer for differing versions of KiCAD
-    if isKicadNightly == True:
+    if config.isKiCADNightly == True:
         parts = pcb.GetFootprints()
     else:
         parts = pcb.GetModules()
-
 
     print("Opened current instance of PCB...")
 
@@ -170,21 +174,22 @@ def placeComponents(layout, references, outputDir):
                     # print("Component reference not matching the current reference. Skipping...")
                     continue
 
-                # Start placing components
                 print("Found match, placing component", cur_designator)
+
+                # Snap to the current X-Y position parsed from the KLE file
                 cur_x = unitSpacing2MM(num.abs_x)
                 cur_y = unitSpacing2MM(num.abs_y)
-                
                 component.SetPosition(pcbnew.wxPointMM(float(cur_x), float(cur_y)))
 
                 # Add the specified offsets (plus rotations)
                 off_x = cur_x + float(reference.off_x)
                 off_y = cur_y + float(reference.off_y)
                 off_x, off_y = key.rotateAroundPoint([off_x, off_y], num.angle,[cur_x, cur_y])
-                component.SetPosition(pcbnew.wxPointMM(float(off_x), float(off_y)))
+                off_angle = angle2WxAngle(num.angle + reference.angle)
 
                 # Add orientation + offset angle
-                component.SetOrientation(angle2WxAngle(num.angle + reference.angle))
+                component.SetPosition(pcbnew.wxPointMM(float(off_x), float(off_y)))
+                component.SetOrientation(off_angle)
 
     print("End of component placement. Exiting.")
     pcb.Save(str(outputDir) + "/mod_.kicad_pcb")
@@ -192,8 +197,15 @@ def placeComponents(layout, references, outputDir):
 if __name__ == "__main__":
     pcb = pcbnew.GetBoard()
 else:
+
+    # Get current instance of the PCB objects
     pcb = pcbnew.GetBoard()
+    
+    # Check file version of the PCB
     kicadVer = checkKicadFileFormatVersion(pcb)
     print("KiCAD File Version", kicadVer)
-    isKicadNightly = (kicadVer >= KICAD_NIGHTLY_VERSION) and not (kicadVer < KICAD_STABLE_VERSION)
-    print("KiCAD Nightly Status", isKicadNightly)
+    
+    # Determine if we're working with a stable or a nightly version of KiCAD
+    # We assume that the file corresponds to the version
+    config.isKiCADNightly = (kicadVer >= config.KICAD_NIGHTLY_VERSION) and not (kicadVer < config.KICAD_STABLE_VERSION)
+    print("KiCAD Nightly Status", config.isKiCADNightly)

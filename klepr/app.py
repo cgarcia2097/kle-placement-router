@@ -147,7 +147,7 @@ class AppFunctions(wx.Panel):
     def initPanel(self):
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.refTable = pcb.ReferenceTable()
+        self.refTable = key.ReferenceTable()
 
         self.cur_index = 0
         self.cur_id = 0
@@ -214,8 +214,6 @@ class AppFunctions(wx.Panel):
         hbox.Add(self.inputFileTxt, proportion=1,flag=wx.ALL | wx.EXPAND, border=10)
 
         self.vbox.Add(hbox, flag=wx.LEFT | wx.EXPAND, border=10)
-
-        # TODO: Add a text box option for adding raw data instead
 
         self.vbox.Add((-1, 10))
 
@@ -352,7 +350,7 @@ class AppFunctions(wx.Panel):
         print("Creating new reference...")
 
         # Create a new instance of Reference
-        newRef = pcb.Reference()
+        newRef = key.Reference()
         newRef.id = math.ceil(random.random()*sys.maxsize)
         newRef.reference = newRef.reference + str(self.list.GetItemCount()) + '_'
 
@@ -488,7 +486,7 @@ class AppFunctions(wx.Panel):
 
             # Get coordinate maps for the components
             keeb.parseLayout(layout)
-            # keeb.exportCoordinateMap(self.OutputDir)
+            keeb.exportCoordinateMap(self.OutputDir)
             pcb.placeComponents(keeb.getCoordinateMap(), self.refTable.table, self.OutputDir)
 
     def finalizeWidgets(self):

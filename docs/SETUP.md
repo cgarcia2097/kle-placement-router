@@ -14,7 +14,8 @@ When running inside KiCAD as a plugin, the program should be self-contained in t
 
     *KiCAD stable* : `KICAD_STABLE_PLUGIN_DIR=~/.kicad_plugins/`
 
-- In a terminal window, run `make push` to push the KLEPR folder into the plugins directory to `nightly` and `stable`
+- In a terminal window, run `make push` to push the KLEPR folder into the plugins directory for `nightly` and `stable`.
+  - Alternatively you could just drag the KLEPR folder to your desired KiCAD plugin directory
 - In PCBNew (either version), open `Tools`->`Scripting Terminal`
 - In the terminal window, click `Options`->`Startup`->`Edit Startup Script`
 - Add the following lines inside the startup script:
