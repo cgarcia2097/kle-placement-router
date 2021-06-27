@@ -60,7 +60,7 @@ class Klepr():
     Parameters:
         
     reference - (str) 
-      The part reference ("K_11", "LED_34", etc.)
+      The part reference to search ("K_11", "LED_34", etc.)
     """
     if self.isNightly == True:
       return self.pcb.FindFootprintByReference(reference)
@@ -229,32 +229,41 @@ class Klepr():
     # Start with all parts out of the way
     self.MovePartsToLocation(config.CORNER_X,config.CORNER_Y)
 
-
-    ########## Loops version 1
-
+    # #######################################################################
+    #
+    # By nature of method key.Keyboard.parseLayout(), the coordinates are
+    # stored in numerical order in which they are created. It also happens
+    # that self.GetPartsByPrefix() returns a list of parts containing the 
+    # prefix in numerical order. This effectively eliminates the need to 
+    # match the index numbers to the part reference, eliminating risk of 
+    # off-by-one errors due to indexing issues.
+    #
+    # #######################################################################
     for entry in prefixTable.table.values():
       parts = self.GetPartsByPrefix(entry.prefix)
 
-      # Map coordinate to part using tuple
-      # This is done to avoid indexing errors
       for num, coordinate in enumerate(layout.keys):
 
-        # Snap part to layout coordinate
+        # Map coordinate index with part index
+        # This is done to avoid indexing errors with index-to-reference mapping
+        part = parts[num]
+
+        # Snap part to coordinate
         cur_x = self.convertUnit2MM(coordinate.abs_x)
         cur_y = self.convertUnit2MM(coordinate.abs_y)
-        self.SetPartPosition(parts[num], cur_x, cur_y)
+        self.SetPartPosition(part, cur_x, cur_y)
 
-        # Calculate the specified offsets
+        # Calculate the specified offsets for given prefix
         off_x = cur_x + float(entry.off_x)
         off_y = cur_y + float(entry.off_y)
         off_x, off_y = key.rotateAroundPoint([off_x, off_y], entry.angle,[cur_x, cur_y])
         off_angle = self.angle2KiCADAngle(float(coordinate.angle) + float(entry.angle))
         
         # Add offsets to current position
-        self.SetPartPosition(parts[num], off_x, off_y)
-        self.SetPartOrientation(parts[num], off_angle)
+        self.SetPartPosition(part, off_x, off_y)
+        self.SetPartOrientation(part, off_angle)
 
-#    ########## Loops version 2
+#    ########## Loops old version
 #
 #    for coordinate in layout.keys:
 #      for entry in prefixTable.table.values():
