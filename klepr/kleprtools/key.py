@@ -11,20 +11,20 @@ def rotateAroundPoint(point, degrees, origin=[0,0]):
 
   dx = point[0] - origin[0]
   dy = point[1] - origin[1]
-  cos = math.cos(math.radians(degrees))
-  sin = math.sin(math.radians(degrees))
+  cos = math.cos(math.radians(float(degrees)))
+  sin = math.sin(math.radians(float(degrees)))
   qx = origin[0] + cos*dx - sin*dy
   qy = origin[1] + cos*dy + sin*dx
 
   return qx,qy
 
-class Reference():
-  """ Information as pertains to each reference object """
+class Prefix():
+  """ Contains additional information about  """
 
   def __init__(
       self, 
       obj_id=math.ceil(random.random()*sys.maxsize),
-      reference="REF_",
+      prefix="REF_",
       off_x=0,
       off_y=0,
       angle=0
@@ -32,50 +32,56 @@ class Reference():
     """ 
     Parameters:
     
-    reference  - The prefix of the reference to be tracked
-    off_x    - The additional X unit offset from the module center point
-    off_y    - The additional Y unit offset from the module center point
-    angle    - The additional angular rotation for each prefixed reference
+    prefix - (str)
+      The prefix of the reference to be tracked
+    off_x - (float)
+      The additional X unit offset from the center point of prefixed reference
+    off_y - (float)
+      The additional Y unit offset from the center point of prefixed reference
+    angle - (float) 
+      The additional angular rotation for each prefixed reference
 
     """
     self.id = obj_id
-    self.reference = reference
+    self.prefix = prefix
     self.off_x = off_x
     self.off_y = off_y
     self.angle = angle
 
-  def Reference2Json(self):
-    """ Export reference as JSON """
+  def Prefix2Json(self):
+    """ Export Prefix as JSON """
     return json.dumps(vars(self))
   
-  def Json2Reference(self, json):
-    """ Import JSON as a Reference object"""
+  def Json2Prefix(self, json):
+    """ Import JSON as a Prefix """
 
     attribute = json.loads(json)
-    self.reference = attribute['reference']
+    self.id = attribute['id']
+    self.prefix = attribute['prefix']
     self.off_x = attribute['off_x']
     self.off_y = attribute['off_y']
     self.angle = attribute['angle']
 
 
-class ReferenceTable():
-  """ Contains a collection of Reference objects """
+class PrefixTable():
+  """ Contains a collection of Prefix objects """
 
   def __init__(self):
+    """
+    Constructor 
+    
+    Parameters:
+
+    table - (dict{int : Prefix})
+      A Prefix list uniquely indexed by the Prefix object's id
+    """
     self.table = {}
 
-  def getReferenceTable(self):
-    """ Return a list representation of the keyswitch placement """
-    table = []
-    for reference in self.table:
-      table.append(reference.Reference2Json)
-    return table
-
-  def exportReferenceTable(self, outputDir):
+  def exportPrefixTable(self, outputDir):
     """ Export keyboard information as a JSON """
     table = []
-    for reference in self.table:
-      table.append(reference.Reference2Json)
+    for prefix in self.table:
+      table.append(prefix.Prefix2Json)
     
     with open(outputDir + "/refTable.json", "w") as fp:
       json.dump(table, fp)
@@ -155,10 +161,6 @@ class Keyboard():
     self.author = author
     self.date = datetime.now()
 
-  def getNumOfKeys(self):
-    """ Returns the number of parsed keys """
-    return len(self.keys)
-
   def parseKeyboardInfo(self):
     """ Add additional info """
 
@@ -176,7 +178,7 @@ class Keyboard():
     cur_abs = Point(x=0,y=0)
     cur_rel = Point(x=0,y=0)
     cur_angle = 0
-    key_num = 1
+    key_num = 0
 
     # Extract all rows
     for row in layout:
@@ -186,10 +188,10 @@ class Keyboard():
         key_width = 1
         key_height = 1
 
-        # Extract all keys
+        # Extract all information from row
         for item in row:
 
-          # Parse key descriptor
+          # Key descriptors show up as dicts, parse accordingly
           if isinstance(item, dict):
 
             for key, value in item.items():
@@ -216,6 +218,7 @@ class Keyboard():
                 cur_abs.y = value
                 cur_abs.x = cur_rel.x
 
+          # Keyboard keys show up as str
           # Create key based on current key descriptor
           elif isinstance(item,str):
             newKey = Key()
@@ -241,21 +244,11 @@ class Keyboard():
             key_width = 1
             key_num += 1
             
-          print('.', end='')
         cur_abs.y += 1
         cur_abs.x = cur_rel.x
-        print('.', end='')
-
-  def getCoordinateMap(self):
-    """ Return a list representation of the keyswitch placement """
-    coor_map = []
-    for key in self.keys:
-      coor_map.append(key.Key2Json())
-
-    return coor_map
 
   def exportCoordinateMap(self, outputDir):
-    """ Export keyboard information as a JSON """
+    """ Export Keyboard as a JSON """
     coor_map = []
     for key in self.keys:
       coor_map.append(key.Key2Json())
