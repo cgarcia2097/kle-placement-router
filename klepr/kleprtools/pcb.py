@@ -6,7 +6,7 @@ from klepr.kleprtools import config
 from klepr.kleprtools import key
 
 class Klepr():
-  """  Main backend class for Klepr 
+  """  Main backend class for Klepr application
   """
 
   def __init__(self, *args, **kwargs):
@@ -246,7 +246,11 @@ class Klepr():
 
         # Map coordinate index with part index
         # This is done to avoid indexing errors with index-to-reference mapping
-        part = parts[num]
+        try:
+          part = parts[num]
+        except IndexError as e:
+          print("Error: no components found with this prefix. Skipping...")
+          continue
 
         # Snap part to coordinate
         cur_x = self.convertUnit2MM(coordinate.abs_x)
@@ -256,49 +260,12 @@ class Klepr():
         # Calculate the specified offsets for given prefix
         off_x = cur_x + float(entry.off_x)
         off_y = cur_y + float(entry.off_y)
-        off_x, off_y = key.rotateAroundPoint([off_x, off_y], entry.angle,[cur_x, cur_y])
+        off_x, off_y = key.rotateAroundPoint([off_x, off_y], coordinate.angle,[cur_x, cur_y])
         off_angle = self.angle2KiCADAngle(float(coordinate.angle) + float(entry.angle))
         
         # Add offsets to current position
         self.SetPartPosition(part, off_x, off_y)
         self.SetPartOrientation(part, off_angle)
 
-#    ########## Loops old version
-#
-#    for coordinate in layout.keys:
-#      for entry in prefixTable.table.values():
-#        
-#        # Construct part reference
-#        compRef = entry.prefix + str(coordinate.ref)
-#
-#        # If part reference is not properly delimited, skip
-#        # i.e. More than one underscore
-#        if not (compRef.count('_') == 1):
-#          continue
-#
-#        print("Searching for component:", compRef)
-#        part = self.FindPartByReference(compRef)
-#
-#        # If part does not exist, skip
-#        if part == None:
-#          continue
-#
-#        print("Found component:", compRef, ". Placing...")
-#
-#        # Snap part to the current key position
-#        cur_x = self.convertUnit2MM(coordinate.abs_x)
-#        cur_y = self.convertUnit2MM(coordinate.abs_y)
-#        self.SetPartPosition(part, cur_x, cur_y)
-#
-#        # Calculate the specified offsets
-#        off_x = cur_x + float(entry.off_x)
-#        off_y = cur_y + float(entry.off_y)
-#        off_x, off_y = key.rotateAroundPoint([off_x, off_y], coordinate.angle,[cur_x, cur_y])
-#        off_angle = self.angle2KiCADAngle(coordinate.angle + entry.angle)
-#
-#        # Add offsets to current position
-#        self.SetPartPosition(part, off_x, off_y)
-#        self.SetPartOrientation(part, off_angle)
-#
     print("End of component placement. Exporting board to", outputDir)
     self.SaveBoard(outputDir + "/mod_.kicad_pcb")
