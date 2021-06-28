@@ -1,0 +1,3 @@
+[submodule "keyswitch-kicad-library"]
+	path = keyswitch-kicad-library
+	url = http://github.com/perigoso/keyswitch-kicad-library.git
