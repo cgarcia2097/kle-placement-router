@@ -40,6 +40,7 @@ run_stable:
 clean:
 	make clean_nightly
 	make clean_stable
+	rm -rfv ./$(SRC_DIR)/__pycache__ ./$(SRC_DIR)/kleprtools/__pycache__
 
 # Install the plugins from both stable and nightly
 

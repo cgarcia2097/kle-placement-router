@@ -1,7 +1,5 @@
 # KLE Placement Router (KLEPR)
 
-Think 'leper', but with a 'k', and you'd have 90 percent of the pronunciation.
-
 This is a KiCAD plugin written in Python for programatically placing clusters of components onto a PCB from a layout file.
 
 As always, feel free to contribute by posting issues and pull requests.
@@ -15,6 +13,7 @@ What it is not is a **keyboard generator**. That requires programmatic generatio
 - [**Plugin Setup**](docs/SETUP.md)
 - [**Plugin Usage**](docs/USAGE.md)
 - [**Plugin Updates**](docs/UPDATES.md)
+- [**Plugin Demo**](https://www.youtube.com/watch?v=1WLOXQabQX0)
 
 ## References
 

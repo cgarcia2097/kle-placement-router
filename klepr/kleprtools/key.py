@@ -25,9 +25,9 @@ class Prefix():
       self, 
       obj_id=math.ceil(random.random()*sys.maxsize),
       prefix="REF_",
-      off_x=0,
-      off_y=0,
-      angle=0
+      off_x=0.0,
+      off_y=0.0,
+      angle=0.0
     ):
     """ 
     Parameters:
@@ -93,32 +93,32 @@ class Point():
     self.ref = ref
     self.x = x
     self.y = y
-    self.angle = 0
+    self.angle = angle
 
 class Key():
   """ Information as pertains to each keyswitch. """
 
-  def __init__(self):
+  def __init__(self, * args, **kwargs):
     self.ref = 0
 
     ########### Absolute coordinates in key units
 
-    self.abs_x = 0
-    self.abs_y = 0
-    self.abs_x2 = 0
-    self.abs_y2 = 0
+    self.abs_x = 0.0
+    self.abs_y = 0.0
+    self.abs_x2 = 0.0
+    self.abs_y2 = 0.0
 
     ########### Keyswitch rotation on the keyboard, in degrees
 
-    self.angle = 0
-    self.stab_angle = 0
+    self.angle = 0.0
+    self.stab_angle = 0.0
 
     ########### Absolute bounding box for each key
 
-    self.width = 0
-    self.height = 0
-    self.width2 = 0
-    self.height2 = 0
+    self.width = 0.0
+    self.height = 0.0
+    self.width2 = 0.0
+    self.height2 = 0.0
 
     ########### Other keyswitch metadata
 
